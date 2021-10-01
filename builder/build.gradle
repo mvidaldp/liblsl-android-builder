@@ -1,26 +1,67 @@
 plugins {
-    id 'com.android.library'
+    id 'com.android.application'
 }
 
+//
+// Uncomment the blocks "externalNativeBuild" and "externalNativeBuild.cmake" for building the app
+// with liblsl (LSL) from the source code using CMake. Make sure you have liblsl's source code
+// (https://github.com/sccn/liblsl/releases/latest -> Source code) on /app-root/liblsl or the path
+// you specified on the block "externalNativeBuild.cmake" -> path "./liblsl-path/CMakeLists.txt"
+//
+// In case of an external CMake installation (https://cmake.org/download/ -> Binary distributions),
+// specify cmake.dir=path on local.properties, e.g. cmake.dir=/home/user/Android/SDK/cmake/3.18.0
+// Otherwise you can install CMake using Android Studio's menu via Tools -> SDK Manager -> SDK Tools
+// Also note that you will need CMake version >=3.12.0 to make the build. If your Gradle version is
+// >= 7 you will need CMake <= 3.18.0 to make it work.
+//
+// Comment these blocks for building the app using the compiled library (liblsl.so). Make sure you
+// copy the build library on /app-root/builder/src/main/jniLibs/
+// By compiling liblsl from source, CMake generates it for all Android architectures. The outcome is
+// stored on /app-root/builder/build/intermediates/cmake/debug/obj/
+// Just copy all the folders (arm64-v8a, armeabi-v7a, x86, and x86_64) on the "jniLibs" folder and
+// the build will succeed.
+//
+// IMPORTANT to use LSL on your code:
+// - Take the the last version of LSL.java:
+// https://github.com/labstreaminglayer/liblsl-Java/blob/master/src/edu/ucsd/sccn/LSL.java
+// And copy it inside your app module source code folder (don't forget your package import at the
+// top -> package your.package.app.name;). E.g.: /app-root/module/src/main/java/path-to-the-source/
+// - Ensure you include the following permission on your AndroidManifest.xml:
+// <uses-permission android:name="android.permission.INTERNET" />
+//
+
 android {
+    buildToolsVersion '30.0.3'
     compileSdk 30
 
     defaultConfig {
         minSdk 24
         targetSdk 30
         versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionName '1.15.0'
         consumerProguardFiles "consumer-rules.pro"
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_CPP_FEATURES=rtti exceptions", "-DLSL_NO_FANCY_LIBNAME=1", "-DANDROID_PLATFORM=24"
+                targets "lsl"
+            }
+        }
+    }
+
+    externalNativeBuild.cmake {
+        version "3.12.0+"
+        path "./liblsl/CMakeLists.txt"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -28,9 +69,8 @@ android {
 }
 
 dependencies {
-
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'androidx.appcompat:appcompat:1.4.0-alpha03'
+    implementation 'net.java.dev.jna:jna:5.9.0@aar'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
 }
