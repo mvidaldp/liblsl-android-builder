@@ -1,3 +1,6 @@
+# JetBrains IDE files
+.idea/
+
 # Built application files
 *.apk
 *.aar
