@@ -13,11 +13,13 @@ plugins {
 // Otherwise you can install CMake using Android Studio's menu via Tools -> SDK Manager -> SDK Tools
 // Also note that you will need CMake version >=3.12.0 to make the build. If your Gradle version is
 // >= 7 you will need CMake <= 3.18.0 to make it work.
+// In case of external CMake installation, you will need the Ninja binary inside your cmake/bin
+// folder to make the build work: https://github.com/ninja-build/ninja/releases/latest
 //
 // Comment these blocks for building the app using the compiled library (liblsl.so). Make sure you
-// copy the build library on /app-root/builder/src/main/jniLibs/
+// copy the build library on /app-root/module-root/src/main/jniLibs/
 // By compiling liblsl from source, CMake generates it for all Android architectures. The outcome is
-// stored on /app-root/builder/build/intermediates/cmake/debug/obj/
+// stored on /app-root/module-root/build/intermediates/cmake/debug/obj/
 // Just copy all the folders (arm64-v8a, armeabi-v7a, x86, and x86_64) on the "jniLibs" folder and
 // the build will succeed.
 //
