@@ -10,8 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.IOException;
 import java.util.UUID;
 
-import liblsl.android.builder.R;
-
 public class MainActivity extends AppCompatActivity {
 
     // get class name for logging/debugging purposes
