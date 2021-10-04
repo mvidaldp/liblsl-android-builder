@@ -28,8 +28,10 @@ plugins {
 // https://github.com/labstreaminglayer/liblsl-Java/blob/master/src/edu/ucsd/sccn/LSL.java
 // And copy it inside your app module source code folder (don't forget your package import at the
 // top -> package your.package.app.name;). E.g.: /app-root/module/src/main/java/path-to-the-source/
-// - Ensure you include the following permission on your AndroidManifest.xml:
+// - Include the following permission on your AndroidManifest.xml:
 // <uses-permission android:name="android.permission.INTERNET" />
+// - Include the jna (Java Native Access) in your dependencies block. E.g.:
+// implementation 'net.java.dev.jna:jna:5.9.0@aar'
 //
 
 android {
