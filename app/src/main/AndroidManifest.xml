@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="liblsl.android.builder">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- IMPORTANT: without this permission, LSL won't work. -->
     <uses-permission android:name="android.permission.INTERNET" />

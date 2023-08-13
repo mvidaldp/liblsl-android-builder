@@ -1,20 +1,17 @@
 //
 // Uncomment the blocks "externalNativeBuild" for building the app with liblsl (LSL) from the source
-// code using CMake. Make sure you have liblsl's source code
+// code. Make sure you have liblsl's source code
 // (https://github.com/sccn/liblsl/releases/latest -> Source code) on /app-root/liblsl or the path
 // you specified on the block "externalNativeBuild.cmake" -> path "./liblsl-path/CMakeLists.txt"
+
 //
-// In case of an external CMake installation (https://cmake.org/download/ -> Binary distributions),
-// specify cmake.dir=path on local.properties, e.g. cmake.dir=/home/user/Android/SDK/cmake/3.18.0
-// Otherwise you can install CMake using Android Studio's menu via Tools -> SDK Manager -> SDK Tools
-// In case of external CMake installation, you will need the Ninja binary inside your cmake/bin
-// folder to make the build work: https://github.com/ninja-build/ninja/releases/latest
-//
-// Comment the "externalNativeBuild" blocks for building the app using the compiled library
+// Comment the "externalNativeBuild" blocks for building the app using the compiled native library
 // (liblsl.so). Once the build succeeds, the library files (.so) are automatically copied inside
 // the folders:
 // /project-root/app/src/debug/jniLibs (for a debug build)
 // /project-root/app/src/main/jniLibs (for a release build)
+// Note: A backup of these prebuilt native libraries is on /project-root/libs/[debug/release]
+//
 // IMPORTANT to use LSL on your code:
 // - Take the the last version of LSL.java:
 // https://github.com/labstreaminglayer/liblsl-Java/blob/master/src/edu/ucsd/sccn/LSL.java
@@ -23,7 +20,7 @@
 // - Include the following permission on your AndroidManifest.xml:
 // <uses-permission android:name="android.permission.INTERNET" />
 // - Include the jna (Java Native Access) in your dependencies block. E.g.:
-// implementation 'net.java.dev.jna:jna:5.10.0@aar'
+// implementation 'net.java.dev.jna:jna:[latest-version]@aar'
 //
 
 apply plugin: 'com.android.application'
@@ -46,25 +43,24 @@ android {
             keyPassword keystoreProperties['keyPassword']
         }
     }
-    compileSdk 31
+    compileSdk 33
     defaultConfig {
         minSdk 24
-        targetSdk 31
         versionCode 1
-        versionName '1.16.0'
-        setProperty('archivesBaseName', "liblsl-android-builder-$versionName")
+        versionName '1.16.2'
+        setProperty('archivesBaseName', "LSLMarkersSenderExample-$versionName")
         ndk {
             // Specifies the ABI configurations of your native
             // libraries Gradle should build and package with your app.
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
         }
 //        externalNativeBuild.cmake {
-//            arguments "-DANDROID_CPP_FEATURES=rtti exceptions", "-DLSL_NO_FANCY_LIBNAME=1", "-DANDROID_PLATFORM=24"
+//            arguments "-DANDROID_CPP_FEATURES=rtti exceptions", "-DANDROID_PLATFORM=24"
 //            targets "lsl"
 //        }
     }
 //    externalNativeBuild.cmake {
-//        path "./liblsl/CMakeLists.txt"
+//        path "../liblsl/CMakeLists.txt"
 //    }
     buildTypes {
         debug {
@@ -84,8 +80,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     packagingOptions {
         jniLibs {
@@ -95,30 +91,47 @@ android {
             pickFirsts += ['**/lib/**']
         }
     }
-    buildToolsVersion '32.0.0'
-    ndkVersion '23.1.7779620'
+    buildToolsVersion = '34.0.0'
+    ndkVersion '25.2.9519653'
+    namespace 'liblsl.android.builder'
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
-    implementation 'com.google.android.material:material:1.5.0'
-    implementation 'net.java.dev.jna:jna:5.11.0@aar'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'net.java.dev.jna:jna:5.13.0@aar'
 }
 
 // copy native libraries to per project location
-task copyDebugJniLibs(type: Copy) {
-    from 'build/intermediates/cmake/debug/obj'
+tasks.register('copyDebugJniLibs', Copy) {
+    from '../app/build/intermediates/merged_native_libs/debug/out/lib'
+    into '../app/src/debug/jniLibs'
     include('**/*.*')
-    into 'src/debug/jniLibs'
+    exclude 'mips*', 'armeabi'
 }
-task copyReleaseJniLibs(type: Copy) {
-    from 'build/intermediates/cmake/release/obj'
+tasks.register('copyReleaseJniLibs', Copy) {
+    from '../app/build/intermediates/stripped_native_libs/release/out/lib'
+    into '../app/src/main/jniLibs'
     include('**/*.*')
-    into 'src/main/jniLibs'
+    exclude 'mips*', 'armeabi'
 }
 
-tasks.whenTaskAdded { task ->
+// backup native libraries to per project location
+tasks.register('backupDebugJniLibs', Copy) {
+    from '../app/src/debug/jniLibs'
+    into '../libs/debug'
+    include('**/*.*')
+}
+tasks.register('backupReleaseJniLibs', Copy) {
+    from '../app/src/main/jniLibs'
+    into '../libs/release'
+    include('**/*.*')
+}
+
+tasks.configureEach { task ->
     if (task.name == 'assembleDebug') task.finalizedBy('copyDebugJniLibs')
     if (task.name == 'assembleRelease') task.finalizedBy('copyReleaseJniLibs')
+    if (task.name == 'copyDebugJniLibs') task.finalizedBy('backupDebugJniLibs')
+    if (task.name == 'copyReleaseJniLibs') task.finalizedBy('backupReleaseJniLibs')
 }
